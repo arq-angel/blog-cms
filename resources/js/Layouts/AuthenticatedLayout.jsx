@@ -1,125 +1,168 @@
-import { useState } from 'react';
-import ApplicationLogo from '@/Components/ApplicationLogo';
-import Dropdown from '@/Components/Dropdown';
-import NavLink from '@/Components/NavLink';
-import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
-import { Link } from '@inertiajs/react';
+import {Head, Link} from '@inertiajs/react';
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faUpRightFromSquare, faDashboard, faBarChart, faMessage, faUsers, faList, faLayerGroup, faCaretDown} from "@fortawesome/free-solid-svg-icons";
+import ProfileDropDown from "@/Components/ProfileDropDown.jsx";
+import {useState, useRef, useEffect} from "react";
 
-export default function Authenticated({ user, header, children }) {
-    const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
+export default function AuthenticatedLayout({auth, children}) {
+    const [isPostsDropdownOpen, setIsPostsDropdownOpen] = useState(false);
+    const [isUsersDropdownOpen, setIsUsersDropdownOpen] = useState(false);
+    const postsDropdownRef = useRef(null);
+    const usersDropdownRef = useRef(null);
 
-    return (
-        <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-            <nav className="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between h-16">
-                        <div className="flex">
-                            <div className="shrink-0 flex items-center">
-                                <Link href="/">
-                                    <ApplicationLogo className="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200" />
-                                </Link>
-                            </div>
+    const togglePostsDropdown = () => setIsPostsDropdownOpen(!isPostsDropdownOpen);
+    const toggleUsersDropdown = () => setIsUsersDropdownOpen(!isUsersDropdownOpen);
 
-                            <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink href={route('dashboard')} active={route().current('dashboard')}>
-                                    Dashboard
-                                </NavLink>
-                            </div>
-                        </div>
+    const handleClickOutside = (event) => {
+        if (postsDropdownRef.current && !postsDropdownRef.current.contains(event.target)) {
+            setIsPostsDropdownOpen(false);
+        }
+        if (usersDropdownRef.current && !usersDropdownRef.current.contains(event.target)) {
+            setIsUsersDropdownOpen(false);
+        }
+    };
 
-                        <div className="hidden sm:flex sm:items-center sm:ms-6">
-                            <div className="ms-3 relative">
-                                <Dropdown>
-                                    <Dropdown.Trigger>
-                                        <span className="inline-flex rounded-md">
-                                            <button
-                                                type="button"
-                                                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150"
-                                            >
-                                                {user.username}
+    useEffect(() => {
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
-                                                <svg
-                                                    className="ms-2 -me-0.5 h-4 w-4"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    viewBox="0 0 20 20"
-                                                    fill="currentColor"
-                                                >
-                                                    <path
-                                                        fillRule="evenodd"
-                                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                        clipRule="evenodd"
-                                                    />
-                                                </svg>
-                                            </button>
-                                        </span>
-                                    </Dropdown.Trigger>
+    return (<div className="min-h-screen flex flex-col item-start">
+        <Head title="Dashboard"/>
+        {/* Navigation */}
+        <nav className="bg-gray-800 fixed w-full h-16 top-0">
+            <div className="w-full mx-auto px-4 flex flex-row justify-between items-center h-16">
+                <div className="flex items-center">
+                    {/*<button className="text-gray-300 focus:outline-none lg:hidden">
+                            <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                      d="M4 6h16M4 12h16m-7 6h7"></path>
+                            </svg>
+                        </button>*/}
+                    <Link
+                        href={route("admin.dashboard")}
+                        className="text-white text-lg font-semibold ml-2 hover:text-gray-300"
+                    >
+                        Blog Admin
+                    </Link>
+                </div>
+                <div className="flex flex-row items-center gap-2">
+                    <Link
+                        href={route("home")}
+                        className="text-white text-sm ml-2 hover:text-gray-300"
+                    >
+                        <FontAwesomeIcon icon={faUpRightFromSquare} className="me-1"/>Visit Website
+                    </Link>
+                    <ProfileDropDown/>
+                </div>
+            </div>
+        </nav>
 
-                                    <Dropdown.Content>
-                                        <Dropdown.Link href={route('profile.edit')}>Profile</Dropdown.Link>
-                                        <Dropdown.Link href={route('logout')} method="post" as="button">
-                                            Log Out
-                                        </Dropdown.Link>
-                                    </Dropdown.Content>
-                                </Dropdown>
-                            </div>
-                        </div>
-
-                        <div className="-me-2 flex items-center sm:hidden">
+        <div className="flex flex-1 mt-16">
+            <div className="bg-gray-800 text-white w-48 min-h-screen px-4 py-2">
+                <ul className="space-y-3">
+                    <li>
+                        <Link
+                            className="hover:text-gray-300"
+                        >
+                            <FontAwesomeIcon icon={faDashboard} className="me-1"/>Dashboard
+                        </Link>
+                    </li>
+                    <li ref={postsDropdownRef}>
+                        <div>
                             <button
-                                onClick={() => setShowingNavigationDropdown((previousState) => !previousState)}
-                                className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-gray-500 dark:focus:text-gray-400 transition duration-150 ease-in-out"
+                                className="hover:text-gray-300 flex items-center"
+                                onClick={togglePostsDropdown}
                             >
-                                <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                                    <path
-                                        className={!showingNavigationDropdown ? 'inline-flex' : 'hidden'}
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M4 6h16M4 12h16M4 18h16"
-                                    />
-                                    <path
-                                        className={showingNavigationDropdown ? 'inline-flex' : 'hidden'}
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
+                                    <span>
+                                        <FontAwesomeIcon icon={faLayerGroup} className="me-1"/>
+                                        Posts
+                                    </span>
+                                <FontAwesomeIcon icon={faCaretDown} className="ms-1"/>
                             </button>
+                            {isPostsDropdownOpen && (
+                                <ul className="pl-6 mt-2 space-y-2">
+                                    <li>
+                                        <Link
+                                            href = {route("admin.posts.index")}
+                                            className="hover:text-gray-300"
+                                        >
+                                            View All Posts
+                                        </Link>
+                                    </li>
+                                    <li>
+                                        <Link
+                                            href = {route("admin.posts.create")}
+                                            className="hover:text-gray-300"
+                                        >
+                                            Add Post
+                                        </Link>
+                                    </li>
+                                </ul>
+                            )}
                         </div>
-                    </div>
-                </div>
-
-                <div className={(showingNavigationDropdown ? 'block' : 'hidden') + ' sm:hidden'}>
-                    <div className="pt-2 pb-3 space-y-1">
-                        <ResponsiveNavLink href={route('dashboard')} active={route().current('dashboard')}>
-                            Dashboard
-                        </ResponsiveNavLink>
-                    </div>
-
-                    <div className="pt-4 pb-1 border-t border-gray-200 dark:border-gray-600">
-                        <div className="px-4">
-                            <div className="font-medium text-base text-gray-800 dark:text-gray-200">{user.name}</div>
-                            <div className="font-medium text-sm text-gray-500">{user.email}</div>
+                    </li>
+                    <li>
+                        <Link
+                            className="hover:text-gray-300"
+                        >
+                            <FontAwesomeIcon icon={faList} className="me-1"/>Categories
+                        </Link>
+                    </li>
+                    <li>
+                        <Link
+                            className="hover:text-gray-300"
+                        >
+                            <FontAwesomeIcon icon={faMessage} className="me-1"/>Comments
+                        </Link>
+                    </li>
+                    <li ref={usersDropdownRef}>
+                        <div>
+                            <button
+                                className="hover:text-gray-300 flex items-center"
+                                onClick={toggleUsersDropdown}
+                            >
+                                    <span>
+                                        <FontAwesomeIcon icon={faUsers} className="me-1"/>
+                                        Users
+                                    </span>
+                                <FontAwesomeIcon icon={faCaretDown} className="ms-1"/>
+                            </button>
+                            {isUsersDropdownOpen && (
+                                <ul className="pl-6 mt-2 space-y-2">
+                                    <li>
+                                        <Link
+                                            className="hover:text-gray-300"
+                                        >
+                                            All Users
+                                        </Link>
+                                    </li>
+                                    <li>
+                                        <Link
+                                            className="hover:text-gray-300"
+                                        >
+                                            Add User
+                                        </Link>
+                                    </li>
+                                </ul>
+                            )}
                         </div>
-
-                        <div className="mt-3 space-y-1">
-                            <ResponsiveNavLink href={route('profile.edit')}>Profile</ResponsiveNavLink>
-                            <ResponsiveNavLink method="post" href={route('logout')} as="button">
-                                Log Out
-                            </ResponsiveNavLink>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-
-            {header && (
-                <header className="bg-white dark:bg-gray-800 shadow">
-                    <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">{header}</div>
-                </header>
-            )}
-
-            <main>{children}</main>
+                    </li>
+                    <li>
+                        <Link
+                            className="hover:text-gray-300"
+                        >
+                            <FontAwesomeIcon icon={faBarChart} className="me-1"/>Your Profile
+                        </Link>
+                    </li>
+                </ul>
+            </div>
+            <div className="flex-1 p-0">
+                {children}
+            </div>
         </div>
-    );
+
+    </div>);
 }
